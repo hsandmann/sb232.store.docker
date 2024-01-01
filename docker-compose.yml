@@ -1,4 +1,6 @@
+# docker compose up -d --build --force-recreate
 version: '3.8'
+name: store
 
 services:
 
@@ -15,7 +17,7 @@ services:
       - 8761:8761
     restart: always
     networks:
-      - store-cloud-network
+      - store-network
     # depends_on:
     #   - db
 
@@ -31,12 +33,12 @@ services:
       - 8080:8080
     restart: always
     networks:
-      - store-cloud-network
+      - store-network
     depends_on:
       - discovery
 
   auth:
-    container_name: store-auth
+    # container_name: store-auth
     build:
       context: ../sb232.store.auth/
       dockerfile: Dockerfile
@@ -44,12 +46,15 @@ services:
     environment:
       - eureka.client.serviceUrl.defaultZone=http://store-discovery:8761/eureka/
     networks:
-      - store-cloud-network
+      - store-network
     depends_on:
       - gateway
+    deploy:
+      mode: replicated
+      replicas: 2
 
   product:
-    container_name: store-product
+    # container_name: store-product
     build:
       context: ../sb232.store.product/
       dockerfile: Dockerfile
@@ -58,12 +63,12 @@ services:
       - eureka.client.serviceUrl.defaultZone=http://store-discovery:8761/eureka/
       - spring.datasource.url=jdbc:postgresql://host.docker.internal:5432/poo
     networks:
-      - store-cloud-network
+      - store-network
     depends_on:
       - gateway
 
   customer:
-    container_name: store-customer
+    # container_name: store-customer
     build:
       context: ../sb232.store.customer/
       dockerfile: Dockerfile
@@ -72,10 +77,10 @@ services:
       - eureka.client.serviceUrl.defaultZone=http://store-discovery:8761/eureka/
       - spring.datasource.url=jdbc:postgresql://host.docker.internal:5432/poo
     networks:
-      - store-cloud-network
+      - store-network
     depends_on:
       - gateway
 
 networks:
-  store-cloud-network:
+  store-network:
     driver: bridge
